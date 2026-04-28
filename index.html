@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSmart — Water Monitor</title>
+    <meta name="description" content="Simple, real-time water usage monitoring dashboard. Track flow rate, tank level, and detect leakages automatically.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- ===== SIDE PANEL ===== -->
+        <nav class="side-panel">
+            <div class="side-brand">
+                <i class="fa-solid fa-droplet"></i> AquaSmart
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="#"><i class="fa-solid fa-gauge"></i> Live Dashboard</a></li>
+                <li><a href="HCl Tech project.html" target="_blank"><i class="fa-solid fa-person-chalkboard"></i> Presentation</a></li>
+                <li><a href="#design-thinking"><i class="fa-solid fa-lightbulb"></i> Design Thinking</a></li>
+                <li><a href="#how-system-works"><i class="fa-solid fa-sitemap"></i> Project Architecture</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <!-- ===== TOP HEADER ===== -->
+    <header class="top-bar">
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-droplet"></i></div>
+            <div>
+                <h1>AquaSmart</h1>
+                <p>Water Usage Monitoring System</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="connection-dot" id="conn-dot"></div>
+            <span id="conn-label">Connecting…</span>
+        </div>
+    </header>
+
+    <main class="page">
+
+        <!-- ===== BIG STATUS BANNER ===== -->
+        <section class="status-banner" id="status-banner">
+            <div class="banner-icon" id="banner-icon"><i class="fa-solid fa-check-circle"></i></div>
+            <div class="banner-text">
+                <div class="banner-title" id="banner-title">System Ready</div>
+                <div class="banner-desc" id="banner-desc">Press "Start Monitoring" below to begin the live demo.</div>
+            </div>
+            <div class="banner-badge" id="banner-badge">STANDBY</div>
+        </section>
+
+        <!-- ===== 4 METRIC CARDS ===== -->
+        <section class="metrics-grid">
+
+            <div class="metric-card" id="card-flow">
+                <div class="metric-label">
+                    <i class="fa-solid fa-water"></i>
+                    Water Flow Speed
+                    <span class="metric-hint">How fast water is flowing right now</span>
+                </div>
+                <div class="metric-value"><span id="val-flow">0.0</span><span class="metric-unit">L/min</span></div>
+                <div class="metric-bar-wrap">
+                    <div class="metric-bar" id="bar-flow" style="width:0%"></div>
+                </div>
+                <div class="metric-sub" id="sub-flow">No water flowing</div>
+            </div>
+
+            <div class="metric-card" id="card-tank">
+                <div class="metric-label">
+                    <i class="fa-solid fa-bucket"></i>
+                    Tank Water Level
+                    <span class="metric-hint">How full is the storage tank</span>
+                </div>
+                <div class="metric-value"><span id="val-tank">85.0</span><span class="metric-unit">%</span></div>
+                <div class="metric-bar-wrap">
+                    <div class="metric-bar cyan" id="bar-tank" style="width:85%"></div>
+                </div>
+                <div class="metric-sub" id="sub-tank">Tank is full</div>
+            </div>
+
+            <div class="metric-card" id="card-usage">
+                <div class="metric-label">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    Today's Total Usage
+                    <span class="metric-hint">Total water used since system start</span>
+                </div>
+                <div class="metric-value"><span id="val-usage">42.5</span><span class="metric-unit">L</span></div>
+                <div class="metric-sub">Out of 500 L daily limit</div>
+                <div class="usage-track">
+                    <div class="usage-fill" id="bar-usage" style="width:8.5%"></div>
+                </div>
+            </div>
+
+            <div class="metric-card highlight" id="card-saved">
+                <div class="metric-label">
+                    <i class="fa-solid fa-leaf"></i>
+                    Water Saved
+                    <span class="metric-hint">Saved by auto-closing the valve</span>
+                </div>
+                <div class="metric-value green"><span id="val-saved">0.0</span><span class="metric-unit">L</span></div>
+                <div class="metric-sub">Valve auto-closes on leakage detection</div>
+                <div class="valve-state" id="valve-state">
+                    <i class="fa-solid fa-faucet"></i> Valve is <strong id="valve-word">OPEN</strong>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ===== CONTROLS ===== -->
+        <section class="controls-section">
+            <h2 class="section-title"><i class="fa-solid fa-sliders"></i> Demo Controls</h2>
+            <p class="section-sub">Use these buttons to simulate different real-world water usage scenarios.</p>
+
+            <div class="control-grid">
+                <div class="control-item">
+                    <button class="ctrl-btn primary" id="btn-demo">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Start Monitoring</span>
+                    </button>
+                    <p class="ctrl-desc">Starts the live simulation. Mimics normal everyday water usage — tap on, tap off.</p>
+                </div>
+
+                <div class="control-item">
+                    <button class="ctrl-btn danger" id="btn-leak">
+                        <i class="fa-solid fa-burst"></i>
+                        <span>Simulate Leakage</span>
+                    </button>
+                    <p class="ctrl-desc">Simulates a pipe burst or tap left open. Flow runs continuously — the system will auto-close the valve after 15 seconds.</p>
+                </div>
+
+                <div class="control-item">
+                    <button class="ctrl-btn warning" id="btn-high">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                        <span>High Usage Mode</span>
+                    </button>
+                    <p class="ctrl-desc">Simulates heavy water use (like filling a bathtub). Will trigger a warning when the daily limit is approached.</p>
+                </div>
+
+                <div class="control-item">
+                    <button class="ctrl-btn reset" id="btn-reset">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset Everything</span>
+                    </button>
+                    <p class="ctrl-desc">Resets all values back to default. Use this to start a fresh demonstration.</p>
+                </div>
+
+                <div class="control-item">
+                    <button class="ctrl-btn secondary" id="btn-valve" style="background: rgba(139, 148, 158, 0.1); color: #c9d1d9; border: 1px solid rgba(139, 148, 158, 0.2);">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span>Manual Valve Toggle</span>
+                    </button>
+                    <p class="ctrl-desc">Manually shut off or turn on the main water valve instantly.</p>
+                </div>
+                
+                <div class="control-item">
+                    <button class="ctrl-btn info" id="btn-eco" style="background: rgba(46, 160, 67, 0.1); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.2);">
+                        <i class="fa-solid fa-leaf"></i>
+                        <span>Eco-Mode (Trickle)</span>
+                    </button>
+                    <p class="ctrl-desc">Simulates a slow, steady trickle of water usage. Great for testing low flow tracking.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CHART ===== -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <div>
+                    <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Live Flow Rate Graph</h2>
+                    <p class="section-sub">Each point = one reading taken every 2 seconds. Shows the last 40 seconds.</p>
+                </div>
+                <div class="chart-legend">
+                    <span class="legend-dot cyan"></span> Flow Rate (L/min)
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="flowChart"></canvas>
+            </div>
+            <div class="chart-zones">
+                <div class="zone safe">🟢 0–10 L/min = Normal</div>
+                <div class="zone warn">🟡 10–20 L/min = High Usage</div>
+                <div class="zone danger">🔴 20+ L/min = Danger / Leakage</div>
+            </div>
+        </section>
+
+        <!-- ===== HOW IT WORKS ===== -->
+        <section class="how-section" id="how-system-works">
+            <h2 class="section-title"><i class="fa-solid fa-lightbulb"></i> How This System Works</h2>
+            <p class="section-sub">A simple explanation of what's happening behind the scenes.</p>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <div class="step-icon"><i class="fa-solid fa-tachograph-digital"></i></div>
+                    <h3>Sensor Reads Flow</h3>
+                    <p>A <strong>YF-S201 water flow sensor</strong> on the pipe counts how much water passes per minute. Here, it's simulated by the backend.</p>
+                </div>
+                <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <div class="step-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Controller Evaluates</h3>
+                    <p>The <strong>Node.js server</strong> (or a real ESP32 chip) runs the algorithm to decide: is this <em>normal use</em>, <em>high usage</em>, or a <em>leak</em>?</p>
+                </div>
+                <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <div class="step-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3>Alert Triggered</h3>
+                    <p>If water flows <strong>non-stop for more than 15 seconds</strong>, the system treats it as a leak and fires a red alert immediately.</p>
+                </div>
+                <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+                <div class="step-card">
+                    <div class="step-num">4</div>
+                    <div class="step-icon"><i class="fa-solid fa-faucet-drip"></i></div>
+                    <h3>Valve Auto-Closes</h3>
+                    <p>A <strong>solenoid valve</strong> receives the "CLOSE" command and physically shuts off the water supply — stopping the waste automatically.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== DESIGN THINKING ===== -->
+        <section class="how-section" id="design-thinking" style="margin-top: 32px;">
+            <h2 class="section-title"><i class="fa-solid fa-brain"></i> Design Thinking Principles</h2>
+            <p class="section-sub">Our approach to solving the water wastage problem efficiently.</p>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <h3>Empathize & Define</h3>
+                    <p>Recognized the silent loss of millions of liters of clean water due to unnoticed leaks and unmonitored human usage in homes and industries.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fa-regular fa-lightbulb"></i></div>
+                    <h3>Ideate</h3>
+                    <p>Designed a preventative logic model that doesn't just display data, but actively intervenes (auto-shutoff) to solve the problem before damage occurs.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    <h3>Prototype & Test</h3>
+                    <p>Built a robust scalable WebSockets backend connected to an intuitive dashboard, ensuring zero-latency monitoring simulating real IoT conditions.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="footer">
+            <p>AquaSmart — B.Tech 2nd Semester Design Thinking & Algorithms Project &nbsp;|&nbsp; Built with Node.js + Socket.IO + Chart.js</p>
+        </footer>
+
+    </main>
+    </div> <!-- /main-content -->
+    </div> <!-- /layout-wrapper -->
+
+    <script src="script.js"></script>
+</body>
+</html>
