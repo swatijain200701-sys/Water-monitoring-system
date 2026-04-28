@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSmart | Water Usage Monitoring System</title>
+    <meta name="description"
+        content="IoT-inspired water monitoring dashboard for detecting water wastage and smart water management.">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-droplet"></i>
+                <span>AquaSmart</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#dashboard" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#algorithm"><i class="fa-solid fa-code-branch"></i> Algorithm</a></li>
+                <li><a href="#architecture"><i class="fa-solid fa-network-wired"></i> Architecture</a></li>
+                <li><a href="#design-thinking"><i class="fa-solid fa-lightbulb"></i> Design Thinking</a></li>
+                <li><a href="#presentation"><i class="fa-solid fa-presentation-screen"></i> Presentation</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div>
+                    <h1>Water Usage Monitoring System</h1>
+                    <p class="subtitle">B.Tech 2nd Semester Design Thinking & Algorithms Project</p>
+                </div>
+                <!-- Status Chips -->
+                <div class="status-chips">
+                    <div class="chip" id="chip-sensor"><i class="fa-solid fa-wifi"></i> Sensor Connected</div>
+                    <div class="chip active" id="chip-valve"><i class="fa-solid fa-faucet"></i> Valve Active</div>
+                    <div class="chip safe" id="chip-leakage"><i class="fa-solid fa-shield-halved"></i> Leakage Risk
+                    </div>
+                    <div class="chip stable" id="chip-tank"><i class="fa-solid fa-database"></i> Tank Stable</div>
+                    <button id="theme-toggle" class="icon-btn" title="Toggle Theme"><i
+                            class="fa-solid fa-moon"></i></button>
+                </div>
+            </header>
+
+            <!-- DASHBOARD SECTION -->
+            <section id="dashboard" class="view-section active-section">
+                <!-- Data Cards -->
+                <div class="cards-grid">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h3>Flow Rate</h3>
+                            <i class="fa-solid fa-water card-icon accent-blue"></i>
+                        </div>
+                        <div class="card-value"><span id="val-flow">0.0</span> <span class="unit">L/min</span></div>
+                        <div class="card-trend" id="trend-flow">Normal flow detected</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h3>Tank Level</h3>
+                            <i class="fa-solid fa-glass-water card-icon accent-cyan"></i>
+                        </div>
+                        <div class="card-value"><span id="val-tank">85</span><span class="unit">%</span></div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="bar-tank" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h3>Daily Consumption</h3>
+                            <i class="fa-solid fa-chart-pie card-icon accent-purple"></i>
+                        </div>
+                        <div class="card-value"><span id="val-consumption">42.5</span> <span class="unit">L</span></div>
+                        <div class="card-trend">Estimated total for today</div>
+                    </div>
+                    <div class="data-card alert-card warning" id="card-alert">
+                        <div class="card-header">
+                            <h3>System Status</h3>
+                            <i class="fa-solid fa-bell card-icon" id="alert-icon"></i>
+                        </div>
+                        <div class="card-value status-text" id="val-status">Monitoring</div>
+                        <div class="card-trend" id="trend-status">System running optimally.</div>
+                        <div class="water-saved">Water Saved: <span id="val-saved">0</span> L</div>
+                    </div>
+                </div>
+
+                <!-- Hardware & Simulation Controls -->
+                <div class="controls-panel glass-panel">
+                    <h3><i class="fa-solid fa-gamepad"></i> Demo Control Panel</h3>
+                    <div class="control-buttons">
+                        <button class="btn btn-primary" id="btn-demo"><i class="fa-solid fa-play"></i> Start
+                            Demo</button>
+                        <button class="btn btn-danger" id="btn-leak"><i class="fa-solid fa-burst"></i> Simulate
+                            Leakage</button>
+                        <button class="btn btn-warning" id="btn-high"><i class="fa-solid fa-arrow-trend-up"></i> High
+                            Usage</button>
+                        <button class="btn btn-secondary" id="btn-reset"><i class="fa-solid fa-arrows-rotate"></i> Reset
+                            System</button>
+                        <button class="btn btn-outline" id="btn-report"><i class="fa-solid fa-download"></i> Download
+                            Report</button>
+                    </div>
+                </div>
+
+                <!-- Charts & Visualization -->
+                <div class="charts-grid">
+                    <div class="chart-container glass-panel">
+                        <h3>Real-time Flow Rate Analysis</h3>
+                        <canvas id="flowChart"></canvas>
+                    </div>
+
+                    <!-- Hardware Visualization / Pipeline -->
+                    <div class="pipeline-container glass-panel">
+                        <h3>Data Pipeline Visualization</h3>
+                        <div class="pipeline-visual">
+                            <div class="node sensor" title="YF-S201 Water Flow Sensor">
+                                <i class="fa-solid fa-tachograph-digital"></i>
+                                <span>Flow Sensor</span>
+                            </div>
+                            <div class="flow-line animated-flow">
+                                <div class="flow-particle"></div>
+                            </div>
+                            <div class="node esp32 placeholder-node" title="ESP32/Arduino">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>Controller</span>
+                                <small>(Placeholder)</small>
+                            </div>
+                            <div class="flow-line animated-flow">
+                                <div class="flow-particle"></div>
+                            </div>
+                            <div class="node cloud" title="MQTT/API Backend">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Processing</span>
+                            </div>
+                            <div class="flow-line animated-flow">
+                                <div class="flow-particle"></div>
+                            </div>
+                            <div class="node dashboard" title="Web Dashboard">
+                                <i class="fa-solid fa-laptop-code"></i>
+                                <span>Dashboard</span>
+                            </div>
+                        </div>
+                        <div class="pipeline-note">
+                            <strong>Note:</strong> Currently running in simulator mode. The controller node is
+                            configured to receive payloads via MQTT/REST API when an ESP32 or Arduino is connected.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ALGORITHM SECTION -->
+            <section id="algorithm" class="view-section">
+                <div class="section-container glass-panel">
+                    <h2><i class="fa-solid fa-code-branch"></i> Core Algorithm & Logic</h2>
+                    <p>The system utilizes a time-series evaluation algorithm to differentiate between normal usage and
+                        abnormal wastage (leakage).</p>
+
+                    <div class="algo-grid">
+                        <div class="algo-steps">
+                            <h3>Algorithm Steps</h3>
+                            <ol class="custom-list">
+                                <li><strong>Initialize</strong> system parameters (flow_rate = 0, total_usage = 0, timer
+                                    = 0).</li>
+                                <li><strong>Read sensor data:</strong> Fetch input from the water flow sensor
+                                    continuously.</li>
+                                <li><strong>Evaluate state:</strong> If <code>flow_rate > 0</code>, increment
+                                    <code>total_usage</code>.</li>
+                                <li><strong>Threshold Check (Usage):</strong> If <code>total_usage</code> limits are
+                                    exceeded, flag as <em>High Usage</em>.</li>
+                                <li><strong>Continuous Flow Check (Leakage):</strong>
+                                    <ul>
+                                        <li>Start a timer when flow begins.</li>
+                                        <li>If flow stops, reset timer.</li>
+                                        <li>If flow continues non-stop for duration > <code>LEAK_THRESHOLD_TIME</code>,
+                                            trigger <strong>Leakage Alert</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Actuation:</strong> If alert is critical, send "Close Valve" command to
+                                    solenoid valve.</li>
+                            </ol>
+                        </div>
+
+                        <div class="pseudocode-container">
+                            <h3>Pseudocode</h3>
+                            <pre><code>
+// Configuration
+const THRESHOLD_TIME = 15 // seconds
+const USAGE_LIMIT = 500   // Liters
+
+// State Variables
+float flow_rate = 0;
+float total_vol = 0;
+int continuous_flow_time = 0;
+boolean valve_open = true;
+
+function monitor_water():
+  while (valve_open):
+    flow_rate = read_sensor("YF-S201")
+    
+    if (flow_rate > 0):
+      continuous_flow_time += 1
+      total_vol += (flow_rate / 60)
+      
+      // Leakage Detection Logic
+      if (continuous_flow_time > THRESHOLD_TIME):
+        trigger_alert("Possible Leakage Detected!")
+        valve_open = false // Shut off valve
+        calculate_water_saved()
+        break
+        
+      // Overuse Logic
+      if (total_vol > USAGE_LIMIT):
+        trigger_alert("High Usage Warning")
+        
+    else:
+      continuous_flow_time = 0 // Reset on stop
+      
+    delay(1000) // 1 sec interval
+                            </code></pre>
+                        </div>
+                    </div>
+
+                    <div class="flowchart-container mt-4">
+                        <h3>Decision Flowchart</h3>
+                        <div class="mermaid-diagram">
+                            <pre class="mermaid-fallback">
+[Start] --> [Read Flow Sensor]
+  |
+  v
+{Is Flow > 0?} -- No --> [Reset Timer] --> [Read Flow Sensor]
+  |
+ Yes
+  v
+[Increment Timer & Add Volume]
+  |
+  v
+{Timer > Leak Threshold?} -- Yes --> [Trigger Leak Warning] --> [Close Solenoid Valve] --> [System Halted]
+  |
+ No
+  v
+{Volume > Daily Limit?} -- Yes --> [Trigger High Usage Alert]
+  |
+ No
+  v
+[Display Normal Data] --> [Read Flow Sensor]
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ARCHITECTURE SECTION -->
+            <section id="architecture" class="view-section">
+                <div class="section-container glass-panel">
+                    <h2><i class="fa-solid fa-network-wired"></i> System Architecture</h2>
+                    <p>Designed for easy transition from this software prototype to a physical IoT deployment.</p>
+
+                    <div class="arch-details">
+                        <div class="arch-box">
+                            <i class="fa-solid fa-microchip icon-large"></i>
+                            <h3>1. Hardware Layer</h3>
+                            <p><strong>Sensors:</strong> YF-S201 flow sensor for measuring water velocity. Ultrasonic
+                                sensor (HC-SR04) for tank level.</p>
+                            <p><strong>Actuator:</strong> 12V Solenoid Water Valve to cut off supply upon leakage
+                                detection.</p>
+                            <p><strong>Microcontroller:</strong> ESP32 or ESP8266 Wi-Fi module for local processing and
+                                network communication.</p>
+                        </div>
+
+                        <div class="arch-box">
+                            <i class="fa-solid fa-server icon-large"></i>
+                            <h3>2. Communication Layer</h3>
+                            <p><strong>Protocol:</strong> MQTT (Message Queuing Telemetry Transport) for lightweight,
+                                fast data publishing, or simple REST APIs via HTTP POST requests.</p>
+                            <p><strong>Payload:</strong> JSON objects containing timestamp, device ID, flow rate, and
+                                valve status.</p>
+                        </div>
+
+                        <div class="arch-box">
+                            <i class="fa-solid fa-desktop icon-large"></i>
+                            <h3>3. Application Layer</h3>
+                            <p><strong>This Dashboard:</strong> Built with HTML/CSS/JS. Parses incoming data, applies
+                                the time-series algorithm, renders Chart.js visualizations, and calculates analytics.
+                            </p>
+                            <p>No complex backend required—can run fully in-browser utilizing LocalStorage or connected
+                                to a cloud broker.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DESIGN THINKING SECTION -->
+            <section id="design-thinking" class="view-section">
+                <div class="section-container glass-panel">
+                    <h2><i class="fa-solid fa-lightbulb"></i> Design Thinking Process</h2>
+                    <div class="timeline">
+                        <div class="dt-stage">
+                            <div class="stage-icon"><i class="fa-solid fa-people-group"></i></div>
+                            <div class="stage-content">
+                                <h3>1. Empathize</h3>
+                                <p><strong>Problem context:</strong> Hostels, colleges, and homes experience massive
+                                    water loss due to unmonitored leaks or over-usage (e.g., leaving a tap running,
+                                    broken pipes).</p>
+                                <p><strong>User Needs:</strong> Users need a way to know immediately if water is being
+                                    wasted without having to constantly check physically. Administrators need to track
+                                    overall billing/usage.</p>
+                            </div>
+                        </div>
+
+                        <div class="dt-stage">
+                            <div class="stage-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                            <div class="stage-content">
+                                <h3>2. Define</h3>
+                                <p><strong>Problem Statement:</strong> "How might we create an automated, real-time
+                                    tracking system to detect continuous abnormal water flow and proactively prevent
+                                    wastage in localized plumbing channels?"</p>
+                            </div>
+                        </div>
+
+                        <div class="dt-stage">
+                            <div class="stage-icon"><i class="fa-solid fa-brain"></i></div>
+                            <div class="stage-content">
+                                <h3>3. Ideate</h3>
+                                <p><strong>Ideas generated:</strong> Manual check-ins, mechanical auto-shutoff valves,
+                                    smart shower heads. <br><strong>Selected Idea:</strong> An inexpensive IoT add-on
+                                    (Flow sensor + Solenoid Valve + Web Dashboard) that fits onto existing pipes, using
+                                    a simple time-threshold algorithm to define "wastage".</p>
+                            </div>
+                        </div>
+
+                        <div class="dt-stage">
+                            <div class="stage-icon"><i class="fa-solid fa-hammer"></i></div>
+                            <div class="stage-content">
+                                <h3>4. Prototype</h3>
+                                <p><strong>Current Iteration:</strong> A highly interactive web-based simulator (this
+                                    dashboard). It models the expected behavior of the physical sensors and demonstrates
+                                    the logic used to determine leakage vs. normal usage.</p>
+                            </div>
+                        </div>
+
+                        <div class="dt-stage">
+                            <div class="stage-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                            <div class="stage-content">
+                                <h3>5. Test</h3>
+                                <p>Using the prototype "Simulation modes" to validate the logic. Can the system
+                                    correctly trigger an alert when flow is continuous for too long? (Yes, use the
+                                    "Simulate Leakage" button to test).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRESENTATION ADVANTAGES SECTION -->
+            <section id="presentation" class="view-section">
+                <div class="section-container glass-panel">
+                    <h2><i class="fa-solid fa-presentation-screen"></i> Project Evaluation Details</h2>
+
+                    <div class="grid-2-col">
+                        <div class="eval-box">
+                            <h3><i class="fa-solid fa-star text-warning"></i> Innovation Highlights</h3>
+                            <ul class="check-list">
+                                <li><strong>Algorithmic simplicity:</strong> Uses a time-series threshold rather than
+                                    complex machine learning, meaning it can run on underpowered microcontrollers.</li>
+                                <li><strong>Actionable insights:</strong> Doesn't just show data; it mathematically
+                                    calculates "Water Saved" based on the time the valve is closed after an alert.</li>
+                                <li><strong>Device Agnostic:</strong> Web-based dashboard accessible from mobile,
+                                    tablet, or desktop.</li>
+                            </ul>
+                        </div>
+
+                        <div class="eval-box">
+                            <h3><i class="fa-solid fa-rocket text-accent"></i> Future Scope</h3>
+                            <ul class="check-list">
+                                <li>Integration with machine learning APIs to learn household specific "normal" water
+                                    usage patterns.</li>
+                                <li>Mobile app with Push Notifications via Firebase.</li>
+                                <li>Multi-node support (tracking kitchen tap, bathroom, and main line on the same
+                                    dashboard).</li>
+                                <li>Gamification: Rewarding users with points for water conservation.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h3>Testing Scenarios Output</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Input Conditions</th>
+                                    <th>Algorithm Action</th>
+                                    <th>System Output</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Normal Wash</td>
+                                    <td>Flow = 5 L/m, Time = 10s</td>
+                                    <td>Time &lt; Threshold. Reset on stop.</td>
+                                    <td>Status: Normal. Logs usage.</td>
+                                </tr>
+                                <tr>
+                                    <td>Pipe Burst / Left Open</td>
+                                    <td>Flow = 15 L/m, Time &gt; 30s</td>
+                                    <td>Time &gt; Threshold. Triggers alert.</td>
+                                    <td>Status: LEAK ALERT. Valve Closes.</td>
+                                </tr>
+                                <tr>
+                                    <td>High Consumption</td>
+                                    <td>Flow = 8 L/m, Daily Vol &gt; 200L</td>
+                                    <td>Volume &gt; High Limit.</td>
+                                    <td>Status: OVERUSE WARNING.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
