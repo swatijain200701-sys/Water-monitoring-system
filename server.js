@@ -15,6 +15,7 @@ const io = new Server(server, {
 // Middleware
 app.use(cors());
 app.use(express.static('public')); // Serve the dashboard UI
+app.use(express.static(__dirname)); // FALLBACK: If GitHub accidentally flattened the folders, serve from root too
 app.use(express.json());
 
 // --- System State & Algorithm Setup ---
